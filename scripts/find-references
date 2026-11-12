@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""Rank the 703 prompts of awesome-opus5-5-videos against a video's brief.
+Usage: find-references "english keywords describing the scenario, style, mood, tech" [--top 5] [--category motion|explainer|3d|interactive] [--json]
+Scores = keyword overlap with each entry's prompt + tags + category (synonym-expanded), longer prompts slightly favoured
+(they carry more style detail). Output: slug, category, tags, score, Skillry watch link, prompt file, opening lines."""
+import json, math, os, re, sys
+VT = os.environ.get("VIDEO_TOOLS", os.path.expanduser("~/video-tools")); REPO = os.path.join(VT, "awesome-opus5-5-videos")
+SYN = {
+    "product": ["launch", "saas", "app", "brand", "promo", "startup"], "launch": ["product", "reveal", "promo"],
+    "promo": ["ad", "commercial", "launch", "promo"], "ui": ["dashboard", "interface", "screen", "app", "demo"],
+    "dashboard": ["ui", "interface", "analytics", "chart"], "demo": ["ui", "walkthrough", "screen"],
+    "terminal": ["code", "cli", "console", "typing"], "code": ["terminal", "developer", "programming"],
+    "logo": ["brand", "reveal", "sting", "finale"], "kinetic": ["typography", "type", "text", "words"],
+    "typography": ["kinetic", "type", "text", "font"], "explainer": ["explain", "how", "diagram", "steps"],
+    "network": ["graph", "nodes", "neural", "routing", "connections"], "neural": ["network", "ai", "nodes"],
+    "ai": ["llm", "model", "neural", "claude", "agent"], "api": ["gateway", "router", "endpoint", "developer"],
+    "chart": ["data", "graph", "bars", "line", "numbers"], "data": ["chart", "stats", "numbers", "visualization"],
+    "energetic": ["fast", "hype", "punchy", "beat", "rhythm"], "fast": ["energetic", "quick", "cuts", "rhythm"],
+    "premium": ["cinematic", "sleek", "minimal", "elegant"], "minimal": ["clean", "premium", "simple"],
+    "music": ["beat", "sound", "audio", "song", "sync"], "particles": ["dust", "sparks", "glow"],
+    "3d": ["threejs", "three", "camera", "scene"], "hand-drawn": ["sketch", "whiteboard", "paper", "brush"],
+}
+STOP = set("a an the and or of to in on for with is are be this that it as by at from your you we our make video create".split())
+
+def toks(s): return [w for w in re.findall(r"[a-z0-9][a-z0-9\-]+", s.lower()) if w not in STOP and len(w) > 1]
+
+def main():
+    a = sys.argv[1:]
+    if not a or a[0].startswith("-"): print(__doc__); sys.exit(1)
+    q = toks(a[0]); top = int(a[a.index("--top") + 1]) if "--top" in a else 5
+    cat = a[a.index("--category") + 1] if "--category" in a else None
+    terms = {}
+    for w in q:
+        terms[w] = max(terms.get(w, 0), 1.0)
+        for s in SYN.get(w, []): terms[s] = max(terms.get(s, 0), 0.5)
+    data = json.load(open(os.path.join(REPO, "data/videos.json")))
+    N = len(data); df = {}
+    docs = []
+    for v in data:
+        words = set(toks(v.get("prompt", "") + " " + " ".join(v.get("tech_tags", [])) + " " + v.get("category", "")))
+        docs.append(words)
+        for w in words: df[w] = df.get(w, 0) + 1
+    res = []
+    for v, words in zip(data, docs):
+        if cat and v["category"] != cat: continue
+        s = sum(wt * math.log(1 + N / df[w]) for w, wt in terms.items() if w in words)
+        s *= 1 + 0.15 * math.log10(1 + len(v.get("prompt", "")) / 200)
+        if v.get("has_remake"): s *= 1.05
+        res.append((s, v))
+    res.sort(key=lambda x: -x[0])
+    out = []
+    for s, v in res[:top]:
+        out.append({"slug": v["slug"], "score": round(s, 2), "category": v["category"], "tags": v["tech_tags"],
+                    "watch": v["skillry_url"], "post": v["post_url"], "prompt_file": os.path.join(REPO, "prompts", v["slug"] + ".md"),
+                    "prompt_start": re.sub(r"\s+", " ", v.get("prompt", ""))[:280]})
+    if "--json" in a: print(json.dumps(out, indent=1, ensure_ascii=False)); return
+    for i, o in enumerate(out, 1):
+        print(f"{i}. {o['slug']}  score {o['score']}  [{o['category']} · {', '.join(o['tags'])}]\n   watch: {o['watch']}\n   prompt: {o['prompt_file']}\n   “{o['prompt_start']}…”\n")
+
+main()

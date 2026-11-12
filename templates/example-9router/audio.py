@@ -162,7 +162,7 @@ for d, g in [(0.031, .22), (0.047, .18), (0.071, .14), (0.113, .1), (0.167, .07)
 mx = np.max(np.abs([L, R])); L /= mx/1.6; R /= mx/1.6
 L = LS.limit(L, .9); R = LS.limit(R, .9)
 out = (np.stack([L, R], 1) * 32767).astype(np.int16)
-os.makedirs(os.path.join(HERE, "..", "audio"), exist_ok=True)
-with wave.open(os.path.join(HERE, "..", "audio", "music_sfx.wav"), "wb") as w:
+os.makedirs(os.path.join(HERE, "audio"), exist_ok=True)
+with wave.open(os.path.join(HERE, "audio", "music_sfx.wav"), "wb") as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes(out.tobytes())
 print("ok", DUR)

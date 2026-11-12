@@ -17,6 +17,7 @@ clone givemotion/givemotion        givemotion      # HTML -> video engine (main 
 clone lemomo-ai/Lemo-Opuscar       Lemo-Opuscar    # director guide, procedural SFX/music, TTS check
 clone mexicat/pdoom-video          pdoom-video     # word alignment, beat analysis, three.js renderer
 clone JohnHeibel/PDoomVideo        PDoomVideo-JH   # p5.js brush animation base + parallel subagent guide
+clone yihui-dev/awesome-opus5-5-videos awesome-opus5-5-videos  # 703 code-video prompts: style references when the user sends none
 
 # 2. Node: givemotion (no deps), Remotion workspace, bun (for pdoom-video app)
 log "givemotion skill pack"
