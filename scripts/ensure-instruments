@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""Download exactly the Lemo-Opuscar sample libraries a score needs.
+Usage: ensure-instruments score.py [more files...]   (or: ensure-instruments --list)
+Scans the files for sampler instrument names (S.note('cellos'..), S.hit('timpani'..), score tuples, "inst": "..."),
+maps each to its library via core/audio/INSTRUMENTS.md, and runs tools/fetch.sh for libraries not yet on disk."""
+import os, re, subprocess, sys
+VT = os.environ.get("VIDEO_TOOLS", os.path.expanduser("~/video-tools")); LEMO = os.path.join(VT, "Lemo-Opuscar")
+SRC2LIB = {"VSCO 2 CE": "vsco2ce", "VCSL": "vcsl", "Salamander": "salamander", "FreePats": "freepats", "Karoryfer": "karoryfer", "MuldjordKit": "freepats"}
+SIZE = {"karoryfer": 78, "vcsl": 271, "salamander": 218, "vsco2ce": 395, "freepats": 416}
+ALIAS = {"strings": "violins", "cello": "cellos", "viola": "violas", "double_bass": "contrabass", "upright_bass_pizz": "jazz_bass", "french_horn": "horn", "celesta": "glockenspiel"}
+
+def table():
+    m = {}
+    for line in open(os.path.join(LEMO, "core/audio/INSTRUMENTS.md"), encoding="utf-8"):
+        r = re.match(r"\|\s*`([a-z0-9_]+)`\s*\|[^|]*\|\s*([^|]+?)\s*\|", line)
+        if r:
+            src = r.group(2)
+            lib = next((v for k, v in SRC2LIB.items() if k in src), None)
+            if lib: m.setdefault(r.group(1), lib)
+    return m
+
+def have(lib): return os.path.isdir(os.path.join(LEMO, "core/audio/instruments", lib))
+
+def main():
+    m = table()
+    if sys.argv[1:] == ["--list"]:
+        for k in sorted(m): print(f"{k:22s} {m[k]:11s} {'installed' if have(m[k]) else '-'}")
+        return
+    text = "".join(open(f, encoding="utf-8").read() for f in sys.argv[1:])
+    words = set(re.findall(r"['\"]([a-z][a-z0-9_]+)(?::[a-z0-9_]+)?['\"]", text))
+    words = {ALIAS.get(w, w) for w in words}
+    used = sorted(w for w in words if w in m)
+    libs = sorted({m[w] for w in used})
+    print("instruments:", ", ".join(used) or "none (synth/pluck only)")
+    print("libraries:  ", ", ".join(f"{l} ({SIZE[l]} MB{', installed' if have(l) else ''})" for l in libs) or "none")
+    for l in libs:
+        if not have(l):
+            print(f"↓ fetching {l} …", flush=True)
+            r = subprocess.run(["sh", "tools/fetch.sh", "instruments", l], cwd=LEMO)
+            if r.returncode: print(f"✗ {l} failed: fall back to synthesized parts for {', '.join(w for w in used if m[w]==l)}"); sys.exit(2)
+    print("✓ all libraries present")
+
+main()

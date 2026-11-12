@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+"""Find narration phrases from silences. Usage: vo-segments narration.mp3 [offset_s] > vo.json
+Prints [{"i":1,"start":..,"end":..}] in VIDEO time (offset = where the VO starts in the video)."""
+import json, re, subprocess, sys
+f = sys.argv[1]; off = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0
+dur = float(subprocess.check_output(["ffprobe","-v","error","-show_entries","format=duration","-of","csv=p=0",f]).decode())
+log = subprocess.run(["ffmpeg","-hide_banner","-i",f,"-af","silencedetect=n=-35dB:d=0.12","-f","null","-"],capture_output=True,text=True).stderr
+ev = [(m.group(1), float(m.group(2))) for m in re.finditer(r"silence_(start|end): ([0-9.]+)", log)]
+segs, cur = [], 0.0
+for kind, t in ev:
+    if kind == "start":
+        if t - cur > 0.15: segs.append((cur, t))
+    else: cur = t
+if dur - cur > 0.15: segs.append((cur, dur))
+print(json.dumps([{"i": i+1, "start": round(a+off,3), "end": round(b+off,3), "len": round(b-a,2)} for i,(a,b) in enumerate(segs)], indent=1))
+print(f"# {len(segs)} phrases, narration {dur:.2f}s", file=sys.stderr)

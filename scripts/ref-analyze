@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Study a reference video: specs, contact sheet, cut/pace/color report. Usage: ref-analyze ref.mp4 outdir
+set -euo pipefail; V="$1"; O="${2:-ref-analysis}"; VT="${VIDEO_TOOLS:-$HOME/video-tools}"; mkdir -p "$O"
+ffprobe -v error -show_entries format=duration:stream=codec_type,width,height,r_frame_rate -of compact "$V" | tee "$O/specs.txt"
+ffmpeg -v error -y -i "$V" -vf "fps=1,scale=480:-1,tile=6x6" -frames:v 1 "$O/contact-1fps.jpg"
+node "$VT/givemotion/src/cli.js" analyze "$V" -o "$O" > "$O/analyze.txt" 2>&1 || true
+node "$VT/givemotion/src/cli.js" audio "$V" > "$O/audio.txt" 2>&1 || true
+echo "→ $O/contact-1fps.jpg  $O/analyze.txt  $O/audio.txt"

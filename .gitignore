@@ -1,0 +1,5 @@
+node_modules/
+videos/*/out/
+videos/*/build/audio/*.wav
+.gm-parts/
+__pycache__/

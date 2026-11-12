@@ -1,0 +1,17 @@
+{
+  "duration": 52.0,
+  "vo_offset": 2.0,
+  "cues": {
+    "burst": 1.6,
+    "p1": 2.0, "p2": 4.03, "p3": 5.81, "p4": 7.71,
+    "converge": 8.7, "silence": 9.45, "logo": 9.97,
+    "promise": 11.34,
+    "ui_endpoint": 15.1, "ui_cli": 17.62, "ui_claude": 19.36,
+    "ui_providers": 21.84, "ui_combo": 24.1,
+    "routing": 26.59, "reroute": 27.93, "ui_console": 28.9,
+    "ui_key": 30.38, "ui_usage": 32.58, "ui_pause": 35.08,
+    "r1": 37.9, "r2": 39.1, "r3": 40.36, "r4": 41.7,
+    "always": 43.37,
+    "final": 44.81, "lockup": 45.83, "tag1": 47.33, "tag2": 48.42, "cta": 49.4
+  }
+}

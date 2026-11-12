@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Create a project skeleton. Usage: new-video-project <name> [dir]
+set -euo pipefail; N="$1"; D="${2:-$PWD/videos}/$N"; VT="${VIDEO_TOOLS:-$HOME/video-tools}"
+mkdir -p "$D"/{input/assets,build/fonts,build/audio,build/ui,out}
+cp -n "$VT"/fonts/*.woff2 "$D/build/fonts/" 2>/dev/null || true
+cat > "$D/input/README.md" <<'T'
+Put here:  brief.md (prompt / goals)  scenario.md  storyboard.(md|html|jpg)  narration.(mp3|wav)  reference.mp4  assets/ (logo, screenshots, brand colors)
+T
+echo "$D"
