@@ -14,7 +14,7 @@
     30.38 key created · 32.58 usage per key · 35.08 pause key
     37.9 four reasons · 43.37 always on · 44.81 logo · 45.83 lockup · 49.4 CTA
 -->
-<html data-width="1920" data-height="1080" data-fps="60" data-duration="52" lang="fa" dir="rtl">
+<html data-width="1920" data-height="1080" data-fps="30" data-duration="52" lang="fa" dir="rtl">
 <head>
 <style>
 @font-face{font-family:Vazir;font-weight:400;src:url(fonts/vazirmatn-arabic-400-normal.woff2)}
@@ -164,7 +164,7 @@ svg.route{position:absolute;inset:0;width:100%;height:100%;direction:ltr}
   <div class="flash" id="flash"></div>
 </div>
 <div class="vig"></div>
-<div class="hud"><i class="tl">9ROUTER · MOTION REEL · 2026</i><i class="tr" id="hudr">01 · SIGNAL</i><i class="bl" id="tc">TC 00:00:00:00 · 60FPS</i><i class="br">IRANSERVER · MANAGED APP</i><div class="pb"><b id="pb"></b></div></div>
+<div class="hud"><i class="tl">9ROUTER · MOTION REEL · 2026</i><i class="tr" id="hudr">01 · SIGNAL</i><i class="bl" id="tc">TC 00:00:00:00 · 30FPS</i><i class="br">IRANSERVER · MANAGED APP</i><div class="pb"><b id="pb"></b></div></div>
 
 <script>
 const D = 52;
@@ -291,8 +291,8 @@ gm.onFrame((t, info) => {
   let s = 1; for (const h of HITS) if (t >= h) s += (BIG.has(h) ? 0.07 : 0.03) * Math.exp(-(t - h) / 0.14);
   const drift = 1 + 0.008 * Math.sin(t * 0.7);
   document.getElementById('stage').style.transform = `scale(${s * drift})`;
-  const f = info.frame % 60, sec = Math.floor(t);
-  document.getElementById('tc').textContent = `TC 00:00:${String(sec).padStart(2, '0')}:${String(f).padStart(2, '0')} · 60FPS`;
+  const f = info.frame % 30, sec = Math.floor(t);
+  document.getElementById('tc').textContent = `TC 00:00:${String(sec).padStart(2, '0')}:${String(f).padStart(2, '0')} · 30FPS`;
   document.getElementById('pb').style.width = (t / D * 100) + '%';
   let l = LABELS[0][1]; for (const [a, b] of LABELS) if (t >= a) l = b; document.getElementById('hudr').textContent = l;
 });
